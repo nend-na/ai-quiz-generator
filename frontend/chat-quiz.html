@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Topic Quiz — quizEL</title>
+  <link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="nav-brand">
+    <div class="nav-logo" aria-label="quizEL logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8"/>
+        <path d="M14.5 14.5l3 3"/>
+      </svg>
+    </div>
+    <span>quizEL</span>
+  </a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back
+    </a>
+    <a href="login.html" class="btn btn-dark btn-pill auth-action">Login</a>
+    <button class="dark-toggle" id="btn-dark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+  </div>
+</nav>
+
+<script src="auth.js"></script>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-tag" id="page-tag">Topic Mode</div>
+    <h1 class="page-title" id="page-title">Topic Quiz</h1>
+    <p class="page-subtitle" id="page-subtitle">Enter any topic, set difficulty and timer, then start a 10-question quiz.</p>
+  </div>
+
+  <!-- Loading state shown during daily challenge auto-fetch -->
+  <div id="auto-loading" style="display:none;">
+    <div class="card" style="text-align:center;padding:3rem 2rem;">
+      <div class="spinner" style="margin:0 auto 1rem;width:28px;height:28px;border-width:3px;"></div>
+      <div style="font-weight:600;margin-bottom:0.35rem;" id="auto-loading-title">Loading Daily Challenge...</div>
+      <div style="font-size:0.85rem;color:var(--muted);" id="auto-loading-sub">Fetching today's quiz from the server.</div>
+    </div>
+  </div>
+
+  <!-- Normal topic input (hidden during daily challenge) -->
+  <div id="topic-ui">
+    <div class="card">
+      <div class="messages" id="messages">
+        <div class="msg msg-ai">Enter a topic and the AI will create a quiz. Try: <strong>photosynthesis</strong>, <strong>the Roman Empire</strong>, or <strong>machine learning basics</strong>.</div>
+      </div>
+      <div class="divider"></div>
+
+      <div class="settings-row" style="margin-top:0;padding-top:0;border-top:none;">
+        <div class="settings-group">
+          <label class="field-label">Difficulty</label>
+          <div class="selector-group" id="diff-group">
+            <button class="sel-btn" data-level="easy">Easy</button>
+            <button class="sel-btn active" data-level="medium">Medium</button>
+            <button class="sel-btn" data-level="hard">Hard</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <label class="field-label">Timer</label>
+          <div class="selector-group" id="timer-group">
+            <button class="sel-btn active" data-mode="none">Off</button>
+            <button class="sel-btn" data-mode="question">Per Question</button>
+            <button class="sel-btn" data-mode="total">Full Quiz</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-row">
+        <input type="text" id="topicInput" placeholder="Enter a topic, e.g. the solar system"/>
+        <button class="btn btn-primary" id="btn-generate">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Generate
+        </button>
+      </div>
+      <div class="loader" id="loader"><div class="spinner"></div>Generating your quiz...</div>
+    </div>
+
+    <div id="skeleton" style="display:none; margin-top:2rem;">
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>

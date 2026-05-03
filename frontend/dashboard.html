@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — quizEL</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    .dash-hero {
+      background: var(--surface);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: var(--radius);
+      padding: 2rem 2.25rem;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.35s var(--ease) both;
+      box-shadow: 0 20px 55px rgba(15,23,42,0.08);
+    }
+    .dash-hero::before {
+      content: '';
+      position: absolute;
+      top: -20px; right: -20px;
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      background: rgba(34,115,63,0.08);
+      pointer-events: none;
+    }
+    .dash-hero-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; opacity: 0.65; margin-bottom: 0.4rem;
+    }
+    .dash-hero-title {
+      font-size: 1.7rem; font-weight: 800; letter-spacing: -0.04em;
+      line-height: 1.2; margin-bottom: 0.4rem;
+    }
+    .dash-hero-sub { font-size: 0.88rem; opacity: 0.72; line-height: 1.55; }
+
+    /* Streak card */
+    .streak-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.6rem;
+      box-shadow: var(--shadow-sm); margin-bottom: 1.25rem;
+      animation: fadeUp 0.3s var(--ease) 0.05s both;
+    }
+    .streak-top {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 1.1rem;
+    }
+    .streak-left h3 {
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.3rem;
+    }
+    .streak-num {
+      font-size: 2.8rem; font-weight: 800; font-family: var(--mono);
+      letter-spacing: -0.05em; line-height: 1;
+      color: var(--gold);
+    }
+    .streak-unit { font-size: 0.85rem; color: var(--muted); font-weight: 500; margin-top: 0.15rem; }
+    .streak-flame {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--gold-lt); border: 2px solid #fcd34d;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+    }
+    .streak-bar-wrap { margin-top: 0.25rem; }
+    .streak-bar-label {
+      display: flex; justify-content: space-between;
+      font-size: 0.72rem; color: var(--muted); margin-bottom: 0.4rem;
+    }
+    .streak-bar-track { height: 7px; background: var(--surface-3); border-radius: 99px; overflow: hidden; }
+    .streak-bar-fill  { height: 100%; background: linear-gradient(90deg, #f59e0b, #d97706); border-radius: 99px; transition: width 0.6s var(--ease); }
+    .streak-msg { font-size: 0.82rem; color: var(--muted); margin-top: 0.65rem; font-style: italic; }
+
+    /* Stat tiles */
+    .stat-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+    @media (max-width: 480px) { .stat-tiles { grid-template-columns: 1fr 1fr; } }
+    .stat-tile {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.2rem 1.3rem;
+      box-shadow: var(--shadow-sm); transition: box-shadow var(--t) var(--ease);
+      animation: fadeUp 0.3s var(--ease) both;
+    }
+    .stat-tile:hover { box-shadow: var(--shadow); }
+    .stat-tile-icon {
+      width: 36px; height: 36px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 0.85rem; font-size: 1.1rem;
+    }
+    .tile-green  { background: var(--accent-lt); }
+    .tile-purple { background: var(--purple-lt); }
+    .tile-gold   { background: var(--gold-lt); }
+    .tile-blue   { background: var(--blue-lt); }
+    .tile-red    { background: var(--red-lt); }
+    .stat-tile-val { font-size: 1.7rem; font-weight: 800; font-family: var(--mono); letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.2rem; }
+    .stat-tile-lbl { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+
+    /* Section header */
+    .dash-section { margin-bottom: 2rem; }
+    .dash-section-title {
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.85rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .dash-section-action {
+      font-size: 0.75rem; color: var(--accent); text-decoration: none;
+      font-weight: 600; font-family: var(--font); background: none;
+      border: none; cursor: pointer; transition: opacity var(--t) var(--ease);
+      text-transform: none; letter-spacing: 0;
+    }
+    .dash-section-action:hover { opacity: 0.7; }
+
+    /* Weak area rows */
+    .weak-row {
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 0.85rem 1.1rem; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface);
+      margin-bottom: 0.55rem; transition: all var(--t) var(--ease);
+      animation: fadeUp 0.25s var(--ease) both;
+    }
+    .weak-row:hover { border-color: var(--accent-dim); box-shadow: var(--shadow-sm); }
+    .weak-row-name  { flex: 1; font-weight: 600; font-size: 0.9rem; }
+    .weak-row-track { width: 90px; height: 5px; background: var(--surface-3); border-radius: 99px; overflow: hidden; }
+    .weak-row-fill  { height: 100%; border-radius: 99px; transition: width 0.5s var(--ease); }
+    .fill-bad  { background: var(--red); }
+    .fill-ok   { background: #f59e0b; }
+    .fill-good { background: var(--green); }
+    .weak-row-pct  { font-family: var(--mono); font-size: 0.78rem; font-weight: 700; min-width: 34px; text-align: right; }
+    .pct-bad  { color: var(--red); }
+    .pct-ok   { color: #f59e0b; }
+    .pct-good { color: var(--green); }
+    .weak-row-btn {
+      font-size: 0.75rem; font-weight: 600; padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-xs); border: 1.5px solid var(--border);
+      background: var(--surface-2); color: var(--text-2); cursor: pointer;
+      font-family: var(--font); transition: all var(--t) var(--ease);
+    }
+    .weak-row-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+
+    /* History table */
+    .history-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+    .history-wrap table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    .history-wrap th,
+    .history-wrap td {
+      padding: 1rem 1rem;
+      text-align: left;
+      color: var(--text);
+      font-size: 0.94rem;
+      line-height: 1.4;
+      border-bottom: 1px solid var(--surface-3);
+      vertical-align: middle;
+    }
+    .history-wrap th {
+      background: var(--surface-2);
+      color: var(--text-2);
+      font-weight: 700;
+      font-size: 0.84rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .history-wrap tbody tr:last-child td { border-bottom: none; }
+    .history-wrap td.score-cell {
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .history-wrap td .diff-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.3rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text-2);
+      background: var(--surface-2);
+    }
+    .history-wrap td .diff-easy { color: #166534; }
+    .history-wrap td .diff-medium { color: #c47f17; }
+    .history-wrap td .diff-hard { color: #991b1b; }
+    .history-empty { padding: 2rem; text-align: center; color: var(--muted); font-size: 0.88rem; }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--muted); }
+    .empty-state p { font-size: 0.88rem; line-height: 1.6; }
+
+    /* Daily mini card */
+    .daily-mini {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem 1.4rem;
+      display: flex; align-items: center; gap: 1rem;
+      box-shadow: var(--shadow-sm); margin-bottom: 1.25rem;
+      animation: fadeUp 0.3s var(--ease) 0.1s both;
+    }
+    .daily-mini-icon {
+      width: 42px; height: 42px; border-radius: var(--radius-sm);
+      background: var(--accent-lt); border: 1px solid var(--accent-dim);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent); flex-shrink: 0;
+    }
+    .daily-mini-body { flex: 1; min-width: 0; }
+    .daily-mini-title { font-size: 0.92rem; font-weight: 700; margin-bottom: 0.18rem; }
+    .daily-mini-sub   { font-size: 0.78rem; color: var(--muted); }
+    .daily-mini-btn {
+      font-size: 0.82rem; font-weight: 600;
+      padding: 0.5rem 1rem; border-radius: var(--radius-xs);
+      background: var(--accent); color: #fff; border: none;
+      cursor: pointer; font-family: var(--font);
+      transition: all var(--t) var(--ease); white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .daily-mini-btn:hover { background: var(--accent-mid); transform: translateY(-1px); }
+    .daily-mini-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .daily-done-txt { font-size: 0.8rem; font-weight: 600; color: var(--green); white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-brand">
+    <div class="nav-logo" aria-label="quizEL logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8"/>
+        <path d="M14.5 14.5l3 3"/>
+      </svg>
+    </div>
+    <span>quizEL</span>
+  </a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-back" id="btn-home">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Home
+    </a>
+    <a href="login.html" class="btn btn-dark btn-pill auth-action">Login</a>
+    <button class="dark-toggle" id="btn-dark" title="Toggle dark mode">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+  </div>
+</nav>
+
+<script src="auth.js"></script>
+
+<div class="page">
+
+  <!-- Hero -->
+  <div class="dash-hero">
+    <div class="dash-hero-label">Your Progress</div>
+    <div class="dash-hero-title" id="hero-title">Welcome back</div>
+    <div class="dash-hero-sub" id="hero-sub">Here's how you're doing.</div>
+  </div>
+
+  <!-- Daily challenge mini card -->
+  <div class="daily-mini" id="daily-mini">
+    <div class="daily-mini-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div class="daily-mini-body">
+      <div class="daily-mini-title" id="daily-mini-title">Daily Challenge</div>
+      <div class="daily-mini-sub" id="daily-mini-sub">Loading...</div>
+    </div>
+    <div id="daily-mini-action">
+      <button class="daily-mini-btn" id="btn-daily" disabled>Loading</button>
+    </div>
+  </div>
+
+  <!-- Streak -->
+  <div class="streak-card">
+    <div class="streak-top">
+      <div class="streak-left">
+        <h3>Daily Streak</h3>
+        <div class="streak-num" id="streak-num">0</div>
+        <div class="streak-unit">days in a row</div>
+      </div>
+      <div class="streak-flame" id="streak-flame">&#128293;</div>
+    </div>
+    <div class="streak-bar-wrap">
+      <div class="streak-bar-label">
+        <span>Progress to next milestone</span>
+        <span id="streak-milestone-lbl">0 / 7</span>
+      </div>
+      <div class="streak-bar-track">
+        <div class="streak-bar-fill" id="streak-bar" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="streak-msg" id="streak-msg">Complete a quiz every day to build your streak.</div>
+  </div>
+
+  <!-- Stat tiles -->
+  <div class="stat-tiles">
+    <div class="stat-tile" style="animation-delay:0.05s">
+      <div class="stat-tile-icon tile-green">&#9889;</div>
+      <div class="stat-tile-val" id="tile-total">0</div>
+      <div class="stat-tile-lbl">Quizzes</div>
+    </div>
+    <div class="stat-tile" style="animation-delay:0.1s">
+      <div class="stat-tile-icon tile-purple">&#9733;</div>
+      <div class="stat-tile-val" id="tile-points">0</div>
+      <div class="stat-tile-lbl">Points</div>
+    </div>
+    <div class="stat-tile" style="animation-delay:0.15s">
+      <div class="stat-tile-icon tile-blue">&#127919;</div>
+      <div class="stat-tile-val" id="tile-acc">—</div>
+      <div class="stat-tile-lbl">Accuracy</div>
+    </div>
+    <div class="stat-tile" style="animation-delay:0.2s">
+      <div class="stat-tile-icon tile-gold">&#127942;</div>
+      <div class="stat-tile-val" id="tile-best">0%</div>
+      <div class="stat-tile-lbl">Best Score</div>
+    </div>
+    <div class="stat-tile" style="animation-delay:0.25s">
+      <div class="stat-tile-icon tile-green">&#10003;</div>
+      <div class="stat-tile-val" id="tile-correct">0</div>
+      <div class="stat-tile-lbl">Correct</div>
+    </div>
+    <div class="stat-tile" style="animation-delay:0.3s">
+      <div class="stat-tile-icon tile-red">&#10007;</div>
+      <div class="stat-tile-val" id="tile-wrong">0</div>
+      <div class="stat-tile-lbl">Wrong</div>
+    </div>
+  </div>
+
+  <!-- Weak areas -->
+  <div class="dash-section">
+    <div class="dash-section-title">
+      <span>Weak Areas</span>
+      <span id="weak-count" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.75rem;color:var(--muted);"></span>
+    </div>
+    <div id="weak-list">
+      <div class="empty-state"><p>No data yet.<br>Complete quizzes to see your weak areas here.</p></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="dash-section">
+    <div class="dash-section-title">
+      <span>Quiz History</span>
+      <button class="dash-section-action" id="btn-clear-history">Clear</button>
+    </div>
+    <div class="history-wrap">
+      <table class="history-table" style="width:100%">
+        <thead>
+          <tr>
+            <th>Topic</th>
+            <th>Score</th>
+            <th>Difficulty</th>
+            <th>Time</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="history-body">
+          <tr><td colspan="5" class="history-empty">No history yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import {
+  getStats, getStreak, getPoints, getDark, setDark,
+  getHistory, getWeakAreas, isDailyDone, completeDailyChallenge
+} from './storage.js';
+
+const API = window.location.origin === "null" ? "http://localhost:5000" : window.location.origin;
+
+/* ── Dark mode ── */
+function applyDark() {
+  if (getDark()) document.body.classList.add("dark");
+}
+applyDark();
+
+document.getElementById("btn-dark").addEventListener("click", () => {
+  document.body.classList.toggle("dark");
+  setDark(document.body.classList.contains("dark"));
+});
+
+/* ── Load all stats ── */
+function loadStats() {
+  const stats  = getStats();
+  const streak = getStreak();
+  const points = getPoints();
+
+  console.log("[dashboard] stats:", stats);
+  console.log("[dashboard] streak:", streak);
+  console.log("[dashboard] points:", points);
+
+  // Hero
+  const heroTitle = document.getElementById("hero-title");
+  const heroSub   = document.getElementById("hero-sub");
+  if (stats.total === 0) {
+    heroTitle.textContent = "Welcome to quizEL";
+    heroSub.textContent   = "Take your first quiz to start tracking progress.";
+  } else {
+    const acc = stats.totalQuestions > 0
+      ? Math.round((stats.totalCorrect / stats.totalQuestions) * 100)
+      : 0;
+    heroTitle.textContent = `${stats.total} quiz${stats.total !== 1 ? "es" : ""} completed`;
+    heroSub.textContent   = `${acc}% overall accuracy — keep it up!`;
+  }
+
+  // Streak
+  document.getElementById("streak-num").textContent = streak.count;
+  const milestones = [7, 14, 30, 60, 100];
+  const nextMile   = milestones.find(m => m > streak.count) || milestones[milestones.length - 1];
+  const prevMile   = milestones[milestones.indexOf(nextMile) - 1] || 0;
+  const progress   = Math.min(100, Math.round(((streak.count - prevMile) / (nextMile - prevMile)) * 100));
+  document.getElementById("streak-bar").style.width           = `${progress}%`;
+  document.getElementById("streak-milestone-lbl").textContent = `${streak.count} / ${nextMile} days`;
+
+  const streakMsgs = [
+    [0,  "Complete a quiz every day to build your streak."],
+    [1,  "Great start — come back tomorrow!"],
+    [3,  "3 days in — building momentum!"],
+    [7,  "One week streak — you're on fire!"],
+    [14, "Two weeks straight — impressive dedication!"],
+    [30, "30-day streak — you're unstoppable!"],
+  ];
+  let msg = streakMsgs[0][1];
+  for (const [threshold, text] of streakMsgs) {
+    if (streak.count >= threshold) msg = text;
+  }
+  document.getElementById("streak-msg").textContent = msg;
+
+  // Stat tiles
+  const acc = stats.totalQuestions > 0
+    ? Math.round((stats.totalCorrect / stats.totalQuestions) * 100) + "%"
+    : "—";
+  const wrong = stats.totalQuestions - stats.totalCorrect;
+
+  document.getElementById("tile-total").textContent   = stats.total;
+  document.getElementById("tile-points").textContent  = points;
+  document.getElementById("tile-acc").textContent     = acc;
+  document.getElementById("tile-best").textContent    = stats.bestScore + "%";
+  document.getElementById("tile-correct").textContent = stats.totalCorrect;
+  document.getElementById("tile-wrong").textContent   = Math.max(0, wrong);
+}
+
+/* ── Weak areas ── */
+function loadWeakAreas() {
+  const weak    = getWeakAreas();
+  const weakArr = Object.values(weak)
+    .map(w => ({ ...w, pct: Math.round((w.correct / w.total) * 100) }))
+    .sort((a, b) => a.pct - b.pct);
+
+  const list = document.getElementById("weak-list");
+  const cnt  = document.getElementById("weak-count");
+
+  if (!weakArr.length) {
+    list.innerHTML = '<div class="empty-state"><p>No data yet.<br>Complete quizzes to see your weak areas here.</p></div>';
+    cnt.textContent = "";
+    return;
+  }
+
+  cnt.textContent = `${weakArr.length} topic${weakArr.length !== 1 ? "s" : ""} tracked`;
+  list.innerHTML  = "";
+
+  weakArr.forEach((w, i) => {
+    const cls   = w.pct < 40 ? "bad" : w.pct < 70 ? "ok" : "good";
+    const row   = document.createElement("div");
+    row.className = "weak-row";
+    row.style.animationDelay = `${i * 0.04}s`;
+    row.innerHTML = `
+      <span class="weak-row-name">${w.topic}</span>
+      <div class="weak-row-track">
+        <div class="weak-row-fill fill-${cls}" style="width:${w.pct}%"></div>
+      </div>
+      <span class="weak-row-pct pct-${cls}">${w.pct}%</span>
+      <button class="weak-row-btn" data-topic="${w.topic}">Retry</button>`;
+    list.appendChild(row);
+  });
+
+  // Retry buttons — navigate to chat-quiz with topic pre-filled
+  list.querySelectorAll(".weak-row-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      sessionStorage.setItem("quizai-suggest", btn.dataset.topic);
+      window.location.href = "chat-quiz.html";
+    });
+  });
+}
+
+/* ── History ── */
+function loadHistory() {
+  const history = getHistory();
+  const tbody   = document.getElementById("history-body");
+
+  if (!history.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="history-empty">No quiz history yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = history.map(h => {
+    const pct = h.total > 0 ? Math.round((h.score / h.total) * 100) : 0;
+    return `
+      <tr>
+        <td style="font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${h.topic}">${h.topic}</td>
+        <td class="score-cell">${h.score}/${h.total} <span style="color:var(--muted);font-weight:400;">(${pct}%)</span></td>
+        <td><span class="diff-pill diff-${h.difficulty}">${h.difficulty}</span></td>
+        <td style="color:var(--muted);font-family:var(--mono);font-size:0.8rem;">${h.time || "—"}</td>
+        <td style="color:var(--muted);font-size:0.8rem;">${h.date}</td>
+      </tr>`;
+  }).join("");
+}
+
+/* ── Clear history ── */
+document.getElementById("btn-clear-history").addEventListener("click", () => {
+  if (!confirm("Clear all quiz history? This cannot be undone.")) return;
+  localStorage.removeItem("quizai-history");
+  localStorage.removeItem("quizai-weak");
+  loadHistory();
+  loadWeakAreas();
+});
+
+/* ── Daily Challenge ── */
+async function loadDailyChallenge() {
+  const btn     = document.getElementById("btn-daily");
+  const titleEl = document.getElementById("daily-mini-title");
+  const subEl   = document.getElementById("daily-mini-sub");
+  const action  = document.getElementById("daily-mini-action");
+
+  console.log("[dashboard] Loading daily challenge meta...");
+
+  try {
+    const res = await fetch(`${API}/api/daily`);
+    if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+
+    const meta = await res.json();
+    console.log("[dashboard] Daily meta:", meta);
+
+    titleEl.textContent = `Daily: ${meta.topic}`;
+    subEl.textContent   = "10 questions · Medium difficulty";
+
+    if (isDailyDone(meta.date)) {
+      action.innerHTML = '<span class="daily-done-txt">Completed today</span>';
+      console.log("[dashboard] Daily challenge already completed today.");
+      return;
+    }
+
+    btn.textContent = "Start";
+    btn.disabled    = false;
+
+    btn.addEventListener("click", async () => {
+      btn.textContent = "Loading...";
+      btn.disabled    = true;
+
+      console.log("[dashboard] Fetching daily quiz from /api/daily/quiz...");
+
+      try {
+        const quizRes = await fetch(`${API}/api/daily/quiz`);
+        if (!quizRes.ok) {
+          const errData = await quizRes.json().catch(() => ({}));
+          throw new Error(errData.error || `Server error ${quizRes.status}`);
+        }
+
+        const quizData = await quizRes.json();
+        console.log("[dashboard] Daily quiz received:", quizData.topic, quizData.quiz?.length, "questions");
+
+        if (!quizData.quiz || !Array.isArray(quizData.quiz) || quizData.quiz.length === 0) {
+          throw new Error("Quiz data is empty or invalid.");
+        }
+
+        // Store in sessionStorage for chat-quiz.html to pick up
+        sessionStorage.setItem("quizai-daily-topic", quizData.topic);
+        sessionStorage.setItem("quizai-daily-date",  quizData.date);
+
+        console.log("[dashboard] Redirecting to chat-quiz.html with daily quiz...");
+        window.location.href = "chat-quiz.html?daily=1";
+
+      } catch (err) {
+        console.error("[dashboard] Failed to load daily quiz:", err);
+        btn.textContent = "Try again";
+        btn.disabled    = false;
+        subEl.textContent = `Error: ${err.message}. Make sure the server is running.`;
+        subEl.style.color = "var(--red)";
+      }
+    });
+
+  } catch (err) {
+    console.error("[dashboard] Failed to load daily meta:", err);
+    titleEl.textContent = "Daily Challenge";
+    subEl.textContent   = "Could not connect to server. Make sure it is running.";
+    subEl.style.color   = "var(--red)";
+    action.innerHTML    = `<button class="daily-mini-btn" id="btn-daily-retry">Retry</button>`;
+    document.getElementById("btn-daily-retry")?.addEventListener("click", loadDailyChallenge);
+  }
+}
+
+/* ── Init ── */
+loadStats();
+loadWeakAreas();
+loadHistory();
+loadDailyChallenge();
+</script>
+
+</body>
+</html>

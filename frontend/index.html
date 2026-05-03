@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>quizEL — Learning Platform</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    .daily-card {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 20px;
+      padding: 1.8rem;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+      box-shadow: 0 22px 55px rgba(15,23,42,0.08);
+      animation: fadeUp 0.35s var(--ease) both;
+    }
+    .daily-card::before { display:none; }
+    .daily-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.95rem;
+      margin-bottom: 0.9rem;
+    }
+    .daily-card-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 18px;
+      background: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(15,77,49,0.14);
+      flex-shrink: 0;
+      box-shadow: 0 14px 24px rgba(15,77,49,0.12);
+    }
+    .daily-card-icon svg {
+      width: 22px;
+      height: 22px;
+      display: block;
+      color: var(--accent);
+      stroke: currentColor;
+    }
+    .daily-tag {
+      display:inline-flex;
+      align-items:center;
+      font-size:0.75rem;
+      font-weight:700;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      color: var(--accent);
+      background: var(--accent-lt);
+      border:1px solid var(--accent-dim);
+      padding:0.32rem 0.85rem;
+      border-radius:999px;
+      margin-bottom:1rem;
+    }
+    .daily-title { font-size:1.45rem;font-weight:800;letter-spacing:-0.03em;margin-bottom:0.35rem; }
+    .daily-meta  { font-size:0.95rem;opacity:0.85;margin-bottom:1rem;line-height:1.6; }
+    .daily-footer { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem; }
+    .daily-info  { display:flex;gap:1.25rem; }
+    .daily-info-item { font-size:0.9rem;opacity:0.8; }
+    .daily-info-item strong { display:block;font-size:1rem;font-weight:700;opacity:1;margin-bottom:0.12rem; }
+    .daily-btn {
+      background: linear-gradient(135deg, #ff8f6d, #fac05a, #7f74f6);
+      color:#fff;
+      border: none;
+      padding:0.95rem 1.65rem;
+      border-radius:999px;
+      font-family:var(--font);
+      font-size:0.95rem;
+      font-weight:700;
+      cursor:pointer;
+      transition:all var(--t) var(--ease);
+      white-space:nowrap;
+      box-shadow: 0 18px 32px rgba(255,142,109,0.2);
+    }
+    .daily-btn svg { width: 16px; height: 16px; margin-right: 0.55rem; }
+    .daily-btn:hover:not(:disabled) { opacity:0.98; transform:translateY(-1px); }
+    .daily-btn:disabled { opacity:0.6;cursor:not-allowed; }
+    .daily-done-pill {
+      background: var(--surface-2);
+      border:1px solid var(--border);
+      color: var(--text);
+      padding:0.55rem 1.05rem;
+      border-radius:999px;
+      font-size:0.82rem;font-weight:700;
+    }
+    .daily-countdown { display:flex;align-items:center;gap:0.5rem;font-size:0.86rem;opacity:0.75;margin-top:0.6rem;font-family:var(--mono); }
+    .daily-err { font-size:0.88rem;opacity:0.9;margin-top:0.75rem;color:var(--red); }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-brand">
+    <div class="nav-logo" aria-label="quizEL logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8"/>
+        <path d="M14.5 14.5l3 3"/>
+      </svg>
+    </div>
+    <span>quizEL</span>
+  </a>
+  <div class="nav-right">
+    <div class="nav-streak" id="nav-streak">&#128293; <span id="streak-count">0</span></div>
+    <div class="nav-points" id="nav-points">&#9733; <span id="points-count">0</span></div>
+    <a href="dashboard.html" class="nav-back" style="border-color:var(--border);">Dashboard</a>
+    <a href="login.html" class="btn btn-dark btn-pill auth-action">Login</a>
+    <button class="dark-toggle" id="btn-dark" title="Toggle dark mode">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+  </div>
+</nav>
+
+<script src="auth.js"></script>
+
+<div class="page">
+
+  <!-- Daily Challenge -->
+  <div class="daily-card" id="daily-card">
+    <div class="daily-card-header">
+      <div class="daily-card-icon" title="Daily Challenge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="7"/></svg>
+      </div>
+      <div>
+        <div class="daily-tag">Daily Challenge</div>
+        <div class="daily-title">Today's Quiz</div>
+      </div>
+    </div>
+    <div id="daily-inner">
+      <div style="opacity:0.6">
+        <div style="height:22px;background:rgba(226, 243, 235,0.9);border-radius:8px;width:65%;margin-bottom:0.75rem;"></div>
+        <div style="height:13px;background:rgba(226, 243, 235,0.8);border-radius:6px;width:45%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card accent-card"><div class="stat-label">Quizzes Taken</div><div class="stat-value" id="s-total">0</div><div class="stat-sub">all time</div></div>
+    <div class="stat-card gold-card"><div class="stat-label">Daily Streak</div><div class="stat-value" id="s-streak">0</div><div class="stat-sub">days in a row</div></div>
+    <div class="stat-card purple-card"><div class="stat-label">Total Points</div><div class="stat-value" id="s-points">0</div><div class="stat-sub">keep earning</div></div>
+    <div class="stat-card"><div class="stat-label">Accuracy</div><div class="stat-value" id="s-acc">—</div><div class="stat-sub">overall</div></div>
+  </div>
+
+  <!-- Modes -->
+  <div class="section-head" style="margin-top:0.5rem;">
+    <span class="section-title">Generate a Quiz</span>
+  </div>
+  <div class="home-grid">
+    <a href="text-quiz.html" class="home-card">
+      <div class="home-card-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <div class="home-card-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      <h3>Quiz from Text</h3>
+      <p>Paste notes or articles and generate questions from the content.</p>
+    </a>
+    <a href="chat-quiz.html" class="home-card">
+      <div class="home-card-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="home-card-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+      <h3>Topic Quiz</h3>
+      <p>Describe any topic and the AI builds a quiz for you.</p>
+    </a>
+  </div>
+
+  <!-- Suggested weak areas -->
+  <div id="suggest-section" style="display:none; margin-top:2rem;">
+    <div class="section-head">
+      <span class="section-title">Practice Weak Areas</span>
+      <a href="dashboard.html" class="section-link">See all</a>
+    </div>
+    <div id="suggest-list"></div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div style="margin-top:2rem;">
+    <div class="section-head">
+      <span class="section-title">Top Scores</span>
+      <button id="btn-clear-lb" style="font-size:0.75rem;color:var(--muted);background:none;border:none;cursor:pointer;font-family:var(--font);">Clear</button>
+    </div>
+    <div class="leaderboard-card">
+      <div id="lb-body"><div class="lb-empty">No scores yet. Complete a quiz to appear here.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import {
+  getStats, getStreak, getPoints, getDark, setDark,
+  getScores, getSuggestedTopics, isDailyDone
+} from './storage.js';
+
+const API = window.location.origin === "null" ? "http://localhost:5000" : window.location.origin;
+
+/* ── Dark mode ── */
+if (getDark()) document.body.classList.add("dark");
+document.getElementById("btn-dark").addEventListener("click", () => {
+  document.body.classList.toggle("dark");
+  setDark(document.body.classList.contains("dark"));
+});
+
+/* ── Stats ── */
+const stats  = getStats();
+const streak = getStreak();
+const points = getPoints();
+document.getElementById("s-total").textContent  = stats.total;
+document.getElementById("s-streak").textContent = streak.count;
+document.getElementById("s-points").textContent = points;
+document.getElementById("streak-count").textContent = streak.count;
+document.getElementById("points-count").textContent = points;
+document.getElementById("s-acc").textContent = stats.totalQuestions > 0
+  ? Math.round((stats.totalCorrect / stats.totalQuestions) * 100) + "%"
+  : "—";
+
+/* ── Countdown timer ── */
+function formatCountdown(ms) {
+  if (ms <= 0) return "00:00:00";
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+let countdownInterval = null;
+function startCountdown(ms) {
+  clearInterval(countdownInterval);
+  let remaining = ms;
+  const el = document.getElementById("daily-countdown-val");
+  if (!el) return;
+  el.textContent = formatCountdown(remaining);
+  countdownInterval = setInterval(() => {
+    remaining -= 1000;
+    if (el) el.textContent = formatCountdown(remaining);
+    if (remaining <= 0) { clearInterval(countdownInterval); window.location.reload(); }
+  }, 1000);
+}
+
+/* ── Daily challenge ── */
+async function loadDailyChallenge() {
+  const inner = document.getElementById("daily-inner");
+  console.log("[index] Loading daily challenge...");
+
+  try {
+    const res = await fetch(`${API}/api/daily`);
+    if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+    const meta = await res.json();
+    console.log("[index] Daily meta:", meta);
+
+    const done = isDailyDone(meta.date);
+    inner.innerHTML = `
+      <div class="daily-title">${meta.topic}</div>
+      <div class="daily-meta">10 questions &middot; Medium difficulty</div>
+      <div class="daily-footer">
+        <div class="daily-info">
+          <div class="daily-info-item"><strong>10</strong>Questions</div>
+          <div class="daily-info-item"><strong>Medium</strong>Difficulty</div>
+        </div>
+        ${done
+          ? '<span class="daily-done-pill">Completed today</span>'
+          : '<button class="daily-btn btn-pill" id="btn-daily-start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 6.5L22 9l-5 4.5L18 22l-6-3.5L6 22l1-8.5L2 9l7.5-0.5L12 2z"/></svg>Start Challenge</button>'
+        }
+      </div>
+      <div class="daily-countdown">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Resets in <span id="daily-countdown-val" style="font-weight:600;margin-left:0.25rem;">${formatCountdown(meta.msUntilReset)}</span>
+      </div>`;
+
+    startCountdown(meta.msUntilReset);
+
+    const startBtn = document.getElementById("btn-daily-start");
+    if (startBtn) {
+      startBtn.addEventListener("click", async () => {
+        startBtn.textContent = "Loading...";
+        startBtn.disabled    = true;
+        console.log("[index] Fetching daily quiz...");
+        try {
+          const quizRes = await fetch(`${API}/api/daily/quiz`);
+          if (!quizRes.ok) {
+            const e = await quizRes.json().catch(() => ({}));
+            throw new Error(e.error || `Server error ${quizRes.status}`);
+          }
+          const quizData = await quizRes.json();
+          console.log("[index] Daily quiz fetched:", quizData.topic, quizData.quiz?.length, "Qs");
+          if (!quizData.quiz?.length) throw new Error("Quiz is empty.");
+          sessionStorage.setItem("quizai-daily-topic", quizData.topic);
+          sessionStorage.setItem("quizai-daily-date",  quizData.date);
+          window.location.href = "chat-quiz.html?daily=1";
+        } catch (err) {
+          console.error("[index] Daily quiz fetch failed:", err);
+          startBtn.textContent = "Try Again";
+          startBtn.disabled    = false;
+          const errEl = document.createElement("div");
+          errEl.className   = "daily-err";
+          errEl.textContent = `Could not load quiz: ${err.message}`;
+          startBtn.parentElement.appendChild(errEl);
+        }
+      });
+    }
+
+  } catch (err) {
+    console.error("[index] Daily meta fetch failed:", err);
+    inner.innerHTML = `
+      <div class="daily-title">Daily Challenge</div>
+      <div class="daily-meta">Server not reachable. Make sure the backend is running.</div>
+      <div class="daily-footer">
+        <button class="daily-btn" id="btn-daily-retry">Retry</button>
+      </div>`;
+    document.getElementById("btn-daily-retry")?.addEventListener("click", loadDailyChallenge);
+  }
+}
+
+/* ── Suggested topics ── */
+function loadSuggested() {
+  const suggested = getSuggestedTopics();
+  if (!suggested.length) return;
+  document.getElementById("suggest-section").style.display = "block";
+  const list = document.getElementById("suggest-list");
+  list.innerHTML = "";
+  suggested.forEach(s => {
+    const div = document.createElement("div");
+    div.className = "suggest-card";
+    div.innerHTML = `
+      <div class="suggest-info">
+        <div class="suggest-topic">${s.topic}</div>
+        <div class="suggest-reason">${s.pct}% accuracy — needs practice</div>
+      </div>
+      <button class="btn btn-secondary" style="font-size:0.8rem;padding:0.45rem 0.9rem;" data-topic="${s.topic}">Practice</button>`;
+    div.querySelector("button").addEventListener("click", () => {
+      sessionStorage.setItem("quizai-suggest", s.topic);
+      window.location.href = "chat-quiz.html";
+    });
+    list.appendChild(div);
+  });
+}
+
+/* ── Leaderboard ── */
+function renderLB() {
+  const scores = getScores();
+  const body   = document.getElementById("lb-body");
+  if (!scores.length) { body.innerHTML = '<div class="lb-empty">No scores yet.</div>'; return; }
+  const ranks = ['1','2','3'];
+  body.innerHTML = scores.slice(0,10).map((s,i) => `
+    <div class="lb-row ${i===0?'top':''}">
+      <span class="lb-rank ${['gold','silver','bronze'][i]||''}">${ranks[i] || i + 1}</span>
+      <div>
+        <div class="lb-topic">${s.topic}</div>
+        <div class="lb-meta">${s.difficulty} &middot; ${s.date}</div>
+      </div>
+      <span class="lb-meta">${s.time || ''}</span>
+      <span class="lb-score">${s.score}/${s.total}</span>
+    </div>`).join("");
+}
+
+document.getElementById("btn-clear-lb").addEventListener("click", () => {
+  localStorage.removeItem("quizai-scores");
+  renderLB();
+});
+
+/* ── Init ── */
+loadDailyChallenge();
+loadSuggested();
+renderLB();
+</script>
+</body>
+</html>
